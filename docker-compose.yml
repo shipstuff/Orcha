@@ -1,0 +1,38 @@
+services:
+  orcha:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # SQLite database persistence
+      - orcha-data:/data
+      # Workspace for cloned repos
+      - orcha-workspaces:/workspaces
+      # Claude credentials (read-only)
+      - ~/.claude:/home/orcha/.claude:ro
+    environment:
+      # GitHub App configuration
+      - GITHUB_APP_ID=${GITHUB_APP_ID}
+      - GITHUB_PRIVATE_KEY=${GITHUB_PRIVATE_KEY}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      # Anthropic API key for Claude Code
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Authorization
+      - APPROVED_USERS=${APPROVED_USERS:-}
+      - MAINTAINERS=${MAINTAINERS:-}
+      # Agent configuration
+      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
+      - AGENT_TIMEOUT_MINUTES=${AGENT_TIMEOUT_MINUTES:-60}
+      # Label that triggers agent work
+      - TRIGGER_LABEL=${TRIGGER_LABEL:-agent-work}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  orcha-data:
+  orcha-workspaces:
