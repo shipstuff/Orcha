@@ -60,7 +60,7 @@ export async function githubWebhookRoutes(app: FastifyInstance): Promise<void> {
       return { received: true };
     } catch (error) {
       request.log.error({ error }, 'Error processing webhook');
-      reply.code(500).send({ error: 'Internal server error' });
+      return reply.code(500).send({ error: 'Internal server error' });
     }
   });
 }

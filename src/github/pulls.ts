@@ -57,13 +57,14 @@ export async function listPullRequests(
   head?: string
 ): Promise<PullRequest[]> {
   const octokit = await getInstallationOctokit(installationId);
-
-  const response = await octokit.pulls.list({
+  const params = {
     owner,
     repo,
-    head: head ? `${owner}:${head}` : undefined,
-    state: 'open',
-  });
+    state: 'open' as const,
+    ...(head ? { head: `${owner}:${head}` } : {}),
+  };
+
+  const response = await octokit.pulls.list(params);
 
   return response.data.map((pr) => ({
     number: pr.number,
