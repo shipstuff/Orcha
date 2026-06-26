@@ -95,9 +95,9 @@ export async function runAgent(options: RunAgentOptions): Promise<void> {
         const json = JSON.parse(line);
 
         // Extract session ID from JSON output
-        if (json.session_id && !claudeSessionId) {
+        if (typeof json.session_id === 'string' && !claudeSessionId) {
           claudeSessionId = json.session_id;
-          session.setClaudeSessionId(claudeSessionId);
+          session.setClaudeSessionId(json.session_id);
         }
 
         // Track token usage

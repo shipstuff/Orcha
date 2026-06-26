@@ -13,7 +13,10 @@ export class AgentSession {
   }
 
   static create(issueId: number, state?: SessionState): AgentSession {
-    const session = sessionsRepository.create({ issue_id: issueId, state });
+    const session = sessionsRepository.create({
+      issue_id: issueId,
+      ...(state ? { state } : {}),
+    });
     return new AgentSession(session);
   }
 

@@ -1,22 +1,27 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify from 'fastify';
 import { getConfig } from './config/index.js';
 import { runMigrations } from './database/migrate.js';
 import { githubWebhookRoutes } from './webhook/routes/github.js';
 
-export async function buildApp(): Promise<FastifyInstance> {
+export async function buildApp() {
   const config = getConfig();
 
+  const logger =
+    process.env['NODE_ENV'] === 'production'
+      ? { level: 'info' }
+      : {
+          level: 'debug',
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname',
+            },
+          },
+        };
+
   const app = Fastify({
-    logger: {
-      level: process.env['NODE_ENV'] === 'production' ? 'info' : 'debug',
-      transport: process.env['NODE_ENV'] === 'production' ? undefined : {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    },
+    logger,
   });
 
   // Run database migrations
@@ -33,7 +38,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   return app;
 }
 
-export async function startServer(): Promise<FastifyInstance> {
+export async function startServer() {
   const config = getConfig();
   const app = await buildApp();
 

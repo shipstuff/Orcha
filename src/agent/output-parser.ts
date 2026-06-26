@@ -60,49 +60,50 @@ export function parseAgentOutput(output: string): ParsedOutput {
   const prUrlMatch = lastLines.match(prUrlPattern);
   const prUrl = prUrlMatch?.[0];
 
+  const withOptionalMetadata = (
+    result: Omit<ParsedOutput, 'sessionId' | 'prUrl' | 'tokenUsage'> & Pick<Partial<ParsedOutput>, 'prUrl'>
+  ): ParsedOutput => ({
+    ...result,
+    ...(sessionId ? { sessionId } : {}),
+    ...(result.prUrl ? { prUrl: result.prUrl } : {}),
+    ...(tokenUsage ? { tokenUsage } : {}),
+  });
+
   // Check for errors
   for (const pattern of errorPatterns) {
     if (pattern.test(lastLines)) {
-      return {
+      return withOptionalMetadata({
         type: 'error',
         content: extractRelevantContent(lastLines, pattern),
-        sessionId,
-        tokenUsage,
-      };
+      });
     }
   }
 
   // Check for completion
   for (const pattern of completionPatterns) {
     if (pattern.test(lastLines)) {
-      return {
+      return withOptionalMetadata({
         type: 'completion',
         content: lastLines,
-        sessionId,
-        prUrl,
-        tokenUsage,
-      };
+        ...(prUrl ? { prUrl } : {}),
+      });
     }
   }
 
   // Check for questions
   for (const pattern of questionPatterns) {
     if (pattern.test(lastLines)) {
-      return {
+      return withOptionalMetadata({
         type: 'question',
         content: extractQuestion(lastLines),
-        sessionId,
-        tokenUsage,
-      };
+      });
     }
   }
 
-  return {
+  return withOptionalMetadata({
     type: 'progress',
     content: lastLines,
-    sessionId,
-    tokenUsage,
-  };
+  });
 }
 
 function extractRelevantContent(text: string, pattern: RegExp): string {
