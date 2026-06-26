@@ -35,6 +35,9 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: edge-deploy-${{ github.repository }}
+      cancel-in-progress: false
 
     steps:
       - name: Check out repository
@@ -62,7 +65,7 @@ jobs:
           printf '{"release":"%s"}\n' "${GITHUB_SHA}" > ".deploy-marker/${GITHUB_SHA}.json"
 
       - name: Upload backend release to edge
-        uses: shipstuff/actions/digital-ocean-upload@main
+        uses: shipstuff/actions/digital-ocean-upload@325fc379aef61b2734ad478d16b1df190a2b4889
         with:
           ssh-private-key: ${{ secrets.EDGE_KEY }}
           edge-user: orcha
@@ -71,7 +74,7 @@ jobs:
           delete: "true"
 
       - name: Queue backend activation
-        uses: shipstuff/actions/digital-ocean-upload@main
+        uses: shipstuff/actions/digital-ocean-upload@325fc379aef61b2734ad478d16b1df190a2b4889
         with:
           ssh-private-key: ${{ secrets.EDGE_KEY }}
           edge-user: orcha
